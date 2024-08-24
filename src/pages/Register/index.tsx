@@ -5,6 +5,7 @@
  */
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input, message } from 'antd';
+import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,8 +38,17 @@ const Register = () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      console.log(values);
-      message.success({ content: '注册成功', onClose: handleToLogin });
+      const response = await axios.post('/api/register', values);
+      // console.log(response);
+      if (response.data.code === 200) {
+        message.success({
+          content: '注册成功，即将跳转登录页',
+          duration: 1,
+          onClose: handleToLogin,
+        });
+      } else {
+        message.error(response.data.msg);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -54,14 +64,22 @@ const Register = () => {
             name="username"
             rules={[{ required: true, message: '请输入账号' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="账号" />
+            <Input prefix={<UserOutlined />} placeholder="账号" maxLength={20} />
           </Form.Item>
           <Form.Item<FieldType>
             label="密码"
             name="password"
-            rules={[{ required: true, message: '请输入密码' }]}
+            rules={[
+              { required: true, message: '请输入密码' },
+              {
+                pattern:
+                  /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_]+$)(?![a-z0-9]+$)(?![a-z\W_]+$)(?![0-9\W_]+$)[a-zA-Z0-9\W_]{10,}$/,
+                message:
+                  '密码复杂度太低（密码10-20位，必须包含大写字母，小写字母，数字及特殊字符其中三种）',
+              },
+            ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+            <Input.Password prefix={<LockOutlined />} placeholder="密码" maxLength={20} />
           </Form.Item>
           <Form.Item<FieldType>
             label="确认密码"
@@ -69,6 +87,12 @@ const Register = () => {
             dependencies={['password']}
             rules={[
               { required: true, message: '请输入确认密码' },
+              {
+                pattern:
+                  /^(?![a-zA-Z]+$)(?![A-Z0-9]+$)(?![A-Z\W_]+$)(?![a-z0-9]+$)(?![a-z\W_]+$)(?![0-9\W_]+$)[a-zA-Z0-9\W_]{10,}$/,
+                message:
+                  '密码复杂度太低（密码10-20位，必须包含大写字母，小写字母，数字及特殊字符其中三种）',
+              },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
@@ -79,7 +103,7 @@ const Register = () => {
               }),
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="确认密码" />
+            <Input.Password prefix={<LockOutlined />} placeholder="确认密码" maxLength={20} />
           </Form.Item>
           <Form.Item noStyle>
             <Button type="primary" block onClick={handleSubmit} loading={loading}>

@@ -5,6 +5,7 @@
  */
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input, message } from 'antd';
+import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,8 +36,14 @@ const Login = () => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      console.log(values);
-      message.success('登录成功');
+      // console.log(values);
+      const response = await axios.post('/api/login', values);
+      // console.log(response);
+      if (response.data.code === 200) {
+        message.success('登录成功');
+      } else {
+        message.error('登录失败');
+      }
     } catch (error) {
       console.log(error);
     }
@@ -46,20 +53,26 @@ const Login = () => {
     <div className="h-screen w-screen bg-slate-800 flex justify-center items-center">
       <div className="p-4 bg-white rounded-2xl w-3/4 max-w-96">
         <h2 className="text-xl font-medium mb-2">登录</h2>
-        <Form name="login" layout="vertical" initialValues={{ remember: true }} autoComplete="off">
+        <Form
+          form={form}
+          name="login"
+          layout="vertical"
+          initialValues={{ remember: true }}
+          autoComplete="off"
+        >
           <Form.Item<FieldType>
             label="账号"
             name="username"
             rules={[{ required: true, message: '请输入账号' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="账号" />
+            <Input prefix={<UserOutlined />} placeholder="账号" maxLength={20} />
           </Form.Item>
           <Form.Item<FieldType>
             label="密码"
             name="password"
             rules={[{ required: true, message: '请输入密码' }]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="密码" />
+            <Input.Password prefix={<LockOutlined />} placeholder="密码" maxLength={20} />
           </Form.Item>
           <Form.Item<FieldType> name="remember" valuePropName="checked">
             <Checkbox>记住我</Checkbox>
